@@ -17,27 +17,42 @@ public class App
         String ssFile = args[0];
         int x = Integer.valueOf(args[1]);
         int y = Integer.valueOf(args[2]);
+        float similarity = Float.valueOf(PropertyFileHandler.getProperty("similarity"));
+        
         String tpFile = null;
         Pattern tpPattern = null;
-        Pattern ssPattern = new Pattern(ssFile).similar((float)0.8);
-        Region CropRegion = new Region(x-3, y-3, 6, 6);
+        Pattern ssPattern = new Pattern(ssFile).similar(similarity);
+        
+        String Filename = ssPattern.getFilename();
+        Filename = Filename.substring(Filename.lastIndexOf("\\")).replace("\\", "");
+        Filename = Filename.substring(0, Filename.indexOf("."));
+        
+        int MinWidth = Integer.valueOf(PropertyFileHandler.getProperty("MinWidth"));
+        int MinHeight = Integer.valueOf(PropertyFileHandler.getProperty("MinHeight"));
+        
+        if(MinWidth%2 != 0)
+        	MinWidth += 1;
+        if(MinHeight%2 != 0)
+        	MinHeight += 1;
+        
+        Region CropRegion = new Region(x - MinWidth/2, y - MinHeight/2, MinWidth, MinHeight);
         Region bounds = new Region(Integer.valueOf(PropertyFileHandler.getProperty("BoundX")),
         		Integer.valueOf(PropertyFileHandler.getProperty("BoundY")),
         		Integer.valueOf(PropertyFileHandler.getProperty("BoundW")),
         		Integer.valueOf(PropertyFileHandler.getProperty("BoundH")));
         do
         {
-        	tpFile = String.valueOf(System.currentTimeMillis());
-            tpPattern = new Pattern(tpFile).similar((float)0.8);
+        	tpFile = Filename + "_" + String.valueOf(System.currentTimeMillis());
+            tpPattern = new Pattern(tpFile).similar(similarity);
             CropRegion = DetermineCropRegion(x, y, bounds, CropRegion);
         	CropImage(ssPattern, tpPattern, CropRegion);
-            tpPattern = new Pattern(tpFile).similar((float)0.8);
-        	System.out.println(tpPattern.getFilename());
+            tpPattern = new Pattern(tpFile).similar(similarity);
         }
         while(NoOfMatches(tpPattern, ssPattern) > 1);
-        System.out.println(tpPattern.getFilename());        
+        
+        
         new File(tpPattern.getFilename()).renameTo(
-        		new File(PropertyFileHandler.getProperty("OutFile")));
+        		new File(PropertyFileHandler.getProperty("OutputFolder") + Filename + ".png"));
     }
 
 	public static int NoOfMatches(Pattern searchImage, Pattern Screenshot)
@@ -87,6 +102,9 @@ public class App
     		newCropRegion.w = 10;
     		newCropRegion.y = cropRegion.y - 5;
     		newCropRegion.h = cropRegion.h + 10;
+    	} else
+    	{
+    		System.exit(0);
     	}
 		return newCropRegion;
 	}
