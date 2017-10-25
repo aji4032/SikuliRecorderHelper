@@ -4,7 +4,7 @@
 
   <groupId>amkjunior</groupId>
   <artifactId>SikuliRecorderUtility</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1</version>
   <packaging>jar</packaging>
 
   <name>SikuliRecorderUtility</name>
@@ -25,7 +25,7 @@
         <groupId>org.sikuli</groupId>
         <artifactId>sikuli-api</artifactId>
         <version>1.1.0</version>
-     	<systemPath>${project.basedir}\Library\sikulixapi.jar</systemPath>
+     	<systemPath>${basedir}\Library\sikulixapi.jar</systemPath>
      	<scope>system</scope>
 	</dependency>
   </dependencies>

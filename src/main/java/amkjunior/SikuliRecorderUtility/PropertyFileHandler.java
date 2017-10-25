@@ -11,11 +11,12 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 public class PropertyFileHandler {
-	static String configFile = "Library/config.properties";
+	static String configFile = "config.properties";
 	
 	public static void setProperty(String key, String value){
 		ArrayList<String> lines = new ArrayList<String>();
-		try (BufferedReader br = new BufferedReader(new FileReader(configFile))) {
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(configFile));
 		    String line;
 		    boolean isKeyPresent = false;
 		    while ((line = br.readLine()) != null) {
@@ -29,6 +30,7 @@ public class PropertyFileHandler {
 		    if(!isKeyPresent){
 		    	lines.add(key + "=" + value);
 		    }
+		    br.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
