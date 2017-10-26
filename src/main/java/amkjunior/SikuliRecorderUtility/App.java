@@ -27,6 +27,9 @@ public class App
         Filename = Filename.substring(Filename.lastIndexOf("\\")).replace("\\", "");
         Filename = Filename.substring(0, Filename.indexOf("."));
         
+        String Foldername = ssPattern.getFilename();
+        Foldername = Foldername.substring(0, Foldername.lastIndexOf("\\"));
+        
         int MinWidth = Integer.valueOf(PropertyFileHandler.getProperty("MinWidth"));
         int MinHeight = Integer.valueOf(PropertyFileHandler.getProperty("MinHeight"));
         
@@ -50,9 +53,8 @@ public class App
         }
         while(NoOfMatches(tpPattern, ssPattern) > 1);
         
-        
-        new File(tpPattern.getFilename()).renameTo(
-        		new File(PropertyFileHandler.getProperty("OutputFolder") + Filename + ".png"));
+        String NewFileName = Foldername + "\\" + (Integer.valueOf(Filename)+1) + ".png";
+        new File(tpPattern.getFilename()).renameTo(new File(NewFileName));
     }
 
 	public static int NoOfMatches(Pattern searchImage, Pattern Screenshot)
