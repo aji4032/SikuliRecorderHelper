@@ -76,7 +76,7 @@ public class App
     		new File(searchImage.getFilename()).delete();
     	return count;
     }
-    
+
     public static void CropImage(Pattern Image, Pattern Screenshot, Region region)
     {
     	BufferedImage croppedImage = Image.getBImage().getSubimage(region.x, region.y, region.w, region.h);
@@ -106,7 +106,7 @@ public class App
     		newCropRegion.h = cropRegion.h + 10;
     	} else
     	{
-    		System.exit(0);
+    		System.exit(5);
     	}
 		return newCropRegion;
 	}
