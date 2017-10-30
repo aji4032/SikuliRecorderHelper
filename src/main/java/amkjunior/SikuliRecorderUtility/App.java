@@ -17,19 +17,20 @@ public class App
         String ssFile = args[0];
         int x = Integer.valueOf(args[1]);
         int y = Integer.valueOf(args[2]);
+        String OutputFileName = args[3];
         float similarity = Float.valueOf(PropertyFileHandler.getProperty("similarity"));
         
         String tpFile = null;
         Pattern tpPattern = null;
         Pattern ssPattern = new Pattern(ssFile).similar(similarity);
         
-        String Filename = ssPattern.getFilename();
+        String Filename = OutputFileName;
         Filename = Filename.substring(Filename.lastIndexOf("\\")).replace("\\", "");
         Filename = Filename.substring(0, Filename.indexOf("."));
         
-        String Foldername = ssPattern.getFilename();
+        String Foldername = OutputFileName;
         Foldername = Foldername.substring(0, Foldername.lastIndexOf("\\"));
-        
+                
         int MinWidth = Integer.valueOf(PropertyFileHandler.getProperty("MinWidth"));
         int MinHeight = Integer.valueOf(PropertyFileHandler.getProperty("MinHeight"));
         
@@ -45,7 +46,7 @@ public class App
         		Integer.valueOf(PropertyFileHandler.getProperty("BoundH")));
         do
         {
-        	tpFile = Filename + "_" + String.valueOf(System.currentTimeMillis());
+        	tpFile = Foldername + "\\" + Filename + "_" + String.valueOf(System.currentTimeMillis());
             tpPattern = new Pattern(tpFile).similar(similarity);
             CropRegion = DetermineCropRegion(x, y, bounds, CropRegion);
         	CropImage(ssPattern, tpPattern, CropRegion);
@@ -53,8 +54,7 @@ public class App
         }
         while(NoOfMatches(tpPattern, ssPattern) > 1);
         
-        String NewFileName = Foldername + "\\" + (Integer.valueOf(Filename)+1) + ".png";
-        new File(tpPattern.getFilename()).renameTo(new File(NewFileName));
+        new File(tpPattern.getFilename()).renameTo(new File(OutputFileName));
     }
 
 	public static int NoOfMatches(Pattern searchImage, Pattern Screenshot)
