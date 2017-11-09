@@ -12,12 +12,16 @@ import org.sikuli.script.Region;
 
 public class App 
 {
+	static String ssFile;
+	static int x, y, MinWidth, MinHeight;
+	static String OutputFileName;
+	
     public static void main( String[] args ) 
     {
-        String ssFile = args[0];
-        int x = Integer.valueOf(args[1]);
-        int y = Integer.valueOf(args[2]);
-        String OutputFileName = args[3];
+        ssFile = args[0];
+        x = Integer.valueOf(args[1]);
+        y = Integer.valueOf(args[2]);
+        OutputFileName = args[3];
         float similarity = Float.valueOf(PropertyFileHandler.getProperty("similarity"));
         
         String tpFile = null;
@@ -31,8 +35,8 @@ public class App
         String Foldername = OutputFileName;
         Foldername = Foldername.substring(0, Foldername.lastIndexOf("\\"));
                 
-        int MinWidth = Integer.valueOf(PropertyFileHandler.getProperty("MinWidth"));
-        int MinHeight = Integer.valueOf(PropertyFileHandler.getProperty("MinHeight"));
+        MinWidth = Integer.valueOf(PropertyFileHandler.getProperty("MinWidth"));
+        MinHeight = Integer.valueOf(PropertyFileHandler.getProperty("MinHeight"));
         
         if(MinWidth%2 != 0)
         	MinWidth += 1;
@@ -44,11 +48,16 @@ public class App
         		Integer.valueOf(PropertyFileHandler.getProperty("BoundY")),
         		Integer.valueOf(PropertyFileHandler.getProperty("BoundW")),
         		Integer.valueOf(PropertyFileHandler.getProperty("BoundH")));
+        boolean firstAttempt = true;
         do
         {
+        	if(CropRegion == bounds)
+        		break;
         	tpFile = Foldername + "\\" + Filename + "_" + String.valueOf(System.currentTimeMillis());
             tpPattern = new Pattern(tpFile).similar(similarity);
-            CropRegion = DetermineCropRegion(x, y, bounds, CropRegion);
+            if (!firstAttempt)
+            	CropRegion = DetermineCropRegion(x, y, bounds, CropRegion);
+        	firstAttempt = false;
         	CropImage(ssPattern, tpPattern, CropRegion);
             tpPattern = new Pattern(tpFile).similar(similarity);
         }
@@ -90,23 +99,45 @@ public class App
     
     private static Region DetermineCropRegion(int x, int y, Region bounds, Region cropRegion) {
 		Region newCropRegion = new Region(0, 0, 0, 0);
-    	
-    	if(((cropRegion.x - 5) > bounds.x) && ((cropRegion.x + cropRegion.w + 5) < (bounds.x + bounds.w)))
+    	int incrementalX = (int) (0.05 * bounds.w) > 1 ? (int) (0.05 * bounds.w) : 1;
+    	int incrementalY = (int) (0.05 * bounds.h) > 1 ? (int) (0.05 * bounds.h) : 1;
+		
+    	if(((cropRegion.x - incrementalX) > bounds.x) && ((cropRegion.x + cropRegion.w + incrementalX) < (bounds.x + bounds.w)))
     	{
-    		newCropRegion.x = cropRegion.x - 5;
-    		newCropRegion.w = cropRegion.w + 10;
+    		newCropRegion.x = cropRegion.x - incrementalX;
+    		newCropRegion.w = cropRegion.w + 2 * incrementalX;
     		newCropRegion.y = cropRegion.y;
     		newCropRegion.h = cropRegion.h;
 		}
-    	else if(((cropRegion.y - 5 > bounds.y) && ((cropRegion.y + cropRegion.h + 5) < (bounds.y + bounds.h))))
+    	else if(((cropRegion.y - incrementalY > bounds.y) && ((cropRegion.y + cropRegion.h + incrementalY) < (bounds.y + bounds.h))))
     	{
-    		newCropRegion.x = x - 5;
-    		newCropRegion.w = 10;
-    		newCropRegion.y = cropRegion.y - 5;
-    		newCropRegion.h = cropRegion.h + 10;
-    	} else
+    		newCropRegion.x = x - MinWidth/2;
+    		newCropRegion.w = MinWidth;
+    		newCropRegion.y = cropRegion.y - incrementalY;
+    		newCropRegion.h = cropRegion.h + 2 * incrementalY;
+    	}
+    	else
     	{
-    		System.exit(5);
+    		//output to log file
+    		int newX = ((bounds.x + bounds.w)/2);
+    		int newY = ((bounds.y + bounds.h)/2);
+    		if((newX - x) != 0 && (newY - y) != 0)
+    		{
+	    		System.out.println("[warning] Failed to capture image with (0,0) targetOffset.");
+	    		System.out.println("[warning] Attempting to capture screen image with below targetOffset:");
+	    		System.out.println((newX - x) + "," + (newY - y));
+	    		//call main
+	    		main(new String[]{ssFile,Integer.toString(newX),Integer.toString(newY),OutputFileName});
+        		//Exit app
+        		System.exit(5);
+    		}
+    		else
+    		{
+    			return new Region(Integer.valueOf(PropertyFileHandler.getProperty("BoundX")),
+    	        		Integer.valueOf(PropertyFileHandler.getProperty("BoundY")),
+    	        		Integer.valueOf(PropertyFileHandler.getProperty("BoundW")),
+    	        		Integer.valueOf(PropertyFileHandler.getProperty("BoundH")));
+    		}
     	}
 		return newCropRegion;
 	}
