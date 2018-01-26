@@ -3,7 +3,6 @@ package amkjunior.SikuliRecorderUtility;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-
 import javax.imageio.ImageIO;
 
 import org.sikuli.script.Finder;
@@ -15,8 +14,9 @@ public class App
 	static String ssFile;
 	static int x, y, MinWidth, MinHeight;
 	static String OutputFileName;
+	static String logFileName;
 	
-    public static void main( String[] args ) 
+    public static void main1( String[] args ) 
     {
         ssFile = args[0];
         x = Integer.valueOf(args[1]);
@@ -34,6 +34,15 @@ public class App
         
         String Foldername = OutputFileName;
         Foldername = Foldername.substring(0, Foldername.lastIndexOf("\\"));
+        logFileName = Foldername + "\\ChopperLog.txt";
+        
+        try {
+        	File file = new File(logFileName);
+        	if(!file.exists())
+        		file.createNewFile();
+        } catch (IOException e) {
+        	e.printStackTrace();
+        } 
                 
         MinWidth = Integer.valueOf(PropertyFileHandler.getProperty("MinWidth"));
         MinHeight = Integer.valueOf(PropertyFileHandler.getProperty("MinHeight"));
@@ -66,7 +75,7 @@ public class App
         new File(tpPattern.getFilename()).renameTo(new File(OutputFileName));
     }
 
-	public static int NoOfMatches(Pattern searchImage, Pattern Screenshot)
+	private static int NoOfMatches(Pattern searchImage, Pattern Screenshot)
     {
         int count = 0;
     	try {
@@ -86,7 +95,7 @@ public class App
     	return count;
     }
 
-    public static void CropImage(Pattern Image, Pattern Screenshot, Region region)
+	private static void CropImage(Pattern Image, Pattern Screenshot, Region region)
     {
     	BufferedImage croppedImage = Image.getBImage().getSubimage(region.x, region.y, region.w, region.h);
     	File f = new File(Screenshot.getFilename());
@@ -127,7 +136,7 @@ public class App
 	    		System.out.println("[warning] Attempting to capture screen image with below targetOffset:");
 	    		System.out.println((newX - x) + "," + (newY - y));
 	    		//call main
-	    		main(new String[]{ssFile,Integer.toString(newX),Integer.toString(newY),OutputFileName});
+	    		main1(new String[]{ssFile,Integer.toString(newX),Integer.toString(newY),OutputFileName});
         		//Exit app
         		System.exit(5);
     		}

@@ -10,10 +10,18 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Properties;
 
-public class PropertyFileHandler {
-	static String configFile = "config.properties";
-	
-	public static void setProperty(String key, String value){
+/**
+ * @author Ajith MK
+ * @version 1.0
+ */
+class PropertyFileHandler {
+	final private static String configFile = "config.properties";
+	/**
+	 * To reset a value in "config.properties" file
+	 * @param key The key whose value that needs to be reset.
+	 * @param value The new value for the key.
+	 */
+	static void setProperty(String key, String value){
 		ArrayList<String> lines = new ArrayList<String>();
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(configFile));
@@ -47,7 +55,12 @@ public class PropertyFileHandler {
 			e.printStackTrace();
 		}
 	}
-	public static String getProperty(String key){
+	/**
+	 * To retrieve a String value saved against a "key" in the "config.properties" file.
+	 * @param key The name of the Key against which the value needs to be retrieved
+	 * @return A string value of the key saved in "config.properties" file.
+	 */
+	static String getProperty(String key){
 		Properties prop = new Properties();
 		InputStream input = null;
 		try {
