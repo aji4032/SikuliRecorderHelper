@@ -20,6 +20,7 @@ import org.sikuli.script.Region;
  * <b>Note:-</b><br>
  * 1. The targetOffsets would have to be manually replaced within the script as of now in case of failure to crop at (0,0).<br>
  * 2. System exit code "1" equates to not all parameters being passed correctly or config file not present.<br>
+ * 3. System exit code "2" equates to failure encountered while determining crop Region.<br>
  * @author Ajith MK
  * @version 2.0
  * @param Screenshot Absolute Path of the screenshot from which the image needs to be cropped
@@ -28,9 +29,6 @@ import org.sikuli.script.Region;
  * @param OutputFile Output file name post image crop.
  */
 public class ChopperTheCropper {
-    private static Integer Incrementer;
-	private static int marginX;
-	private static int marginY;
 	public static void main( String[] args ) 
     {
     	//Check to see if all parameters are passed correctly and if config file is present
@@ -52,18 +50,6 @@ public class ChopperTheCropper {
         		Integer.valueOf(PropertyFileHandler.getProperty("BoundH")));
         int MinWidth = Integer.valueOf(PropertyFileHandler.getProperty("MinWidth"));
         int MinHeight = Integer.valueOf(PropertyFileHandler.getProperty("MinHeight"));
-		
-        Incrementer = Integer.valueOf(PropertyFileHandler.getProperty("MaxAttempts"));
-        Incrementer = (int) Math.sqrt(Incrementer) / 2;
-        if (Incrementer <= 1) Incrementer = 2;
-        
-        marginX = (x - bounds.x) < (bounds.x + bounds.w - x)
-        		    ? (x - bounds.x)
-        		    : (bounds.x + bounds.w - x);
-        	        
-        marginY = (y - bounds.y) < (bounds.y + bounds.h - y)
-        		    ? (y - bounds.y)
-        		    : (bounds.y + bounds.h - y);
         
         //Checking if MinWidth & MinHeight even or not
         if(MinWidth%2 != 0)
@@ -105,7 +91,7 @@ public class ChopperTheCropper {
         	BICropImage = CropImage(SSImage, CropRegion);
             tpPattern = new Pattern(BICropImage).similar(similarity);
         }
-        while(NoOfMatches(tpPattern, SSImage) > 1);
+        while(!isPatternUnique(tpPattern, SSImage));
         
         File f = new File(OutputFile);
     	try {ImageIO.write(BICropImage, "PNG", f);} catch (IOException e) {}
@@ -114,23 +100,35 @@ public class ChopperTheCropper {
     }
 
     private static Region DetermineCropRegion(int x, int y, int MinWidth, int MinHeight, Region bounds, Region oldCropRegion) {
-		Region newCropRegion = new Region(0, 0, 0, 0); 
-    	if(oldCropRegion == null)
-    	{
-    		oldCropRegion = new Region((x - MinWidth/2), 
-									   (y - MinHeight/2), 
-									   (MinWidth),
-									   (MinHeight));	
-    	}		
-		
+        Integer Incrementer = Integer.valueOf(PropertyFileHandler.getProperty("MaxAttempts"));
+        Incrementer = (int) Math.sqrt(Incrementer);
+        if (Incrementer <= 1) Incrementer = 2;
+        
+        int marginX = (x - bounds.x) < (bounds.x + bounds.w - x)
+        		    ? (x - bounds.x)
+        		    : (bounds.x + bounds.w - x);
+        	        
+        int marginY = (y - bounds.y) < (bounds.y + bounds.h - y)
+        		    ? (y - bounds.y)
+        		    : (bounds.y + bounds.h - y);
+        			
     	int incrementalX = (int) marginX / Incrementer;
     	int incrementalY = (int) marginY / Incrementer;
+    	
     	if(incrementalX < 1) incrementalX = 1;
-    	if(incrementalY < 1) incrementalY = 1;
-
-        System.out.println("Incrementer: " + Incrementer);
-        System.out.println("IncrementerX: " + incrementalX);
-        System.out.println("IncrementerY: " + incrementalY);
+    	if(incrementalY < 1) incrementalY = 1; 
+        		    
+		Region newCropRegion = new Region(0, 0, 0, 0); 
+    	if(oldCropRegion == null){
+    		oldCropRegion = new Region(x, y, 1, 1);
+			oldCropRegion.x -= MinWidth/2;
+			oldCropRegion.w += MinWidth;
+			oldCropRegion.y -= MinHeight/2;
+			oldCropRegion.h += MinHeight;
+    		
+    		oldCropRegion.x += incrementalX;
+    		oldCropRegion.w -= (2 * incrementalX);
+    	}
 		
     	if(((oldCropRegion.x - incrementalX) > bounds.x) && ((oldCropRegion.x + oldCropRegion.w + incrementalX) < (bounds.x + bounds.w)))
     	{
@@ -142,7 +140,7 @@ public class ChopperTheCropper {
     	else if(((oldCropRegion.y - incrementalY > bounds.y) && ((oldCropRegion.y + oldCropRegion.h + incrementalY) < (bounds.y + bounds.h))))
     	{
     		newCropRegion.x = x - MinWidth/2;
-    		newCropRegion.w = MinWidth;
+    		newCropRegion.w = MinWidth + 1;
     		newCropRegion.y = oldCropRegion.y - incrementalY;
     		newCropRegion.h = oldCropRegion.h + 2 * incrementalY;
     	}
@@ -168,10 +166,15 @@ public class ChopperTheCropper {
 
 	private static BufferedImage CropImage(BufferedImage sSImage, Region region)
     {
-    	BufferedImage croppedImage = sSImage.getSubimage(region.x, region.y, region.w, region.h);
+		BufferedImage croppedImage = null;
+		try{
+    	croppedImage = sSImage.getSubimage(region.x, region.y, region.w, region.h);
+		} catch (Exception e) {
+			System.exit(1);
+		}
     	return croppedImage;
     }
-	private static int NoOfMatches(Pattern searchImage, BufferedImage sSImage)
+	private static boolean isPatternUnique(Pattern searchImage, BufferedImage sSImage)
     {
         int count = 0;
 		Finder f = new Finder(sSImage);
@@ -181,6 +184,6 @@ public class ChopperTheCropper {
 			count++;
 			f.next();
 		}
-    	return count;
+		return (count == 1);
     }
 }
