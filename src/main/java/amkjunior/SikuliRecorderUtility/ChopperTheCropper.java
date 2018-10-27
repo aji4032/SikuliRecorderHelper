@@ -5,8 +5,6 @@ package amkjunior.SikuliRecorderUtility;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
-
 import javax.imageio.ImageIO;
 
 import org.sikuli.script.Finder;
@@ -79,7 +77,7 @@ public class ChopperTheCropper {
         {
         	if(CropRegion == bounds)
         		break;
-            CropRegion = DetermineCropRegion(x, y, MinWidth, MinHeight, bounds, CropRegion);
+            CropRegion = getCropRegion(x, y, MinWidth, MinHeight, bounds, CropRegion);
             if(CropRegion == null)
             {
         		int newX = ((bounds.x + bounds.w)/2);
@@ -94,12 +92,12 @@ public class ChopperTheCropper {
         while(!isPatternUnique(tpPattern, SSImage));
         
         File f = new File(OutputFile);
-    	try {ImageIO.write(BICropImage, "PNG", f);} catch (IOException e) {}
+    	try {ImageIO.write(BICropImage, "PNG", f);} catch (Exception e) {System.exit(2);}
     	
         System.exit(0);
     }
 
-    private static Region DetermineCropRegion(int x, int y, int MinWidth, int MinHeight, Region bounds, Region oldCropRegion) {
+    private static Region getCropRegion(int x, int y, int MinWidth, int MinHeight, Region bounds, Region oldCropRegion) {
         Integer Incrementer = Integer.valueOf(PropertyFileHandler.getProperty("MaxAttempts"));
         Incrementer = (int) Math.sqrt(Incrementer);
         if (Incrementer <= 1) Incrementer = 2;
@@ -119,7 +117,8 @@ public class ChopperTheCropper {
     	if(incrementalY < 1) incrementalY = 1; 
         		    
 		Region newCropRegion = new Region(0, 0, 0, 0); 
-    	if(oldCropRegion == null){
+    	if(oldCropRegion == null)
+    	{
     		oldCropRegion = new Region(x, y, 1, 1);
 			oldCropRegion.x -= MinWidth/2;
 			oldCropRegion.w += MinWidth;
