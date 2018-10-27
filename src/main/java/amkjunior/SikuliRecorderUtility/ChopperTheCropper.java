@@ -57,7 +57,6 @@ public class ChopperTheCropper {
         	MinHeight += 1;
         
         //Declaring additional parameters required
-        String tpFile = null;
         Pattern tpPattern = null;
         Pattern ssPattern = null;
         Region CropRegion = null;
@@ -73,12 +72,12 @@ public class ChopperTheCropper {
         TextFileHandler.setLogFileDirectory(OutputFoldername);
         
         //Core Logic
+        BufferedImage BICropImage = null;
+        BufferedImage SSImage     = ssPattern.getBImage();
         do
         {
         	if(CropRegion == bounds)
         		break;
-        	tpFile = OutputFoldername + "\\" + OutputFileName + "_" + String.valueOf(System.currentTimeMillis());
-            tpPattern = new Pattern(tpFile).similar(similarity);
             CropRegion = DetermineCropRegion(x, y, MinWidth, MinHeight, bounds, CropRegion);
             if(CropRegion == null)
             {
@@ -88,18 +87,21 @@ public class ChopperTheCropper {
             	TextFileHandler.WriteToFile(content);
             	main(new String[]{Screenshot, Integer.toString(newX), Integer.toString(newY), OutputFile});
             }
-        	CropImage(ssPattern, tpPattern, CropRegion);
-            tpPattern = new Pattern(tpFile).similar(similarity);
+        	BICropImage = CropImage(SSImage, CropRegion);
+            tpPattern = new Pattern(BICropImage).similar(similarity);
         }
-        while(NoOfMatches(tpPattern, ssPattern) > 1);
-        new File(tpPattern.getFilename()).renameTo(new File(OutputFile));
+        while(NoOfMatches(tpPattern, SSImage) > 1);
+        
+        File f = new File(OutputFile);
+    	try {ImageIO.write(BICropImage, "PNG", f);} catch (IOException e) {}
+    	
         System.exit(0);
     }
 
     private static Region DetermineCropRegion(int x, int y, int MinWidth, int MinHeight, Region bounds, Region oldCropRegion) {
 		Region newCropRegion = new Region(0, 0, 0, 0); 
-    	int incrementalX = (int) (0.05 * bounds.w) > 1 ? (int) (0.1 * bounds.w) : 1;
-    	int incrementalY = (int) (0.05 * bounds.h) > 1 ? (int) (0.1 * bounds.h) : 1;
+    	int incrementalX = (int) (0.1 * bounds.w) > 1 ? (int) (0.1 * bounds.w) : 1;
+    	int incrementalY = (int) (0.1 * bounds.h) > 1 ? (int) (0.1 * bounds.h) : 1;
     	
     	if(oldCropRegion == null)
     	{
@@ -143,33 +145,21 @@ public class ChopperTheCropper {
 		return newCropRegion;
 	}
 
-	private static void CropImage(Pattern Image, Pattern Screenshot, Region region)
+	private static BufferedImage CropImage(BufferedImage sSImage, Region region)
     {
-    	BufferedImage croppedImage = Image.getBImage().getSubimage(region.x, region.y, region.w, region.h);
-    	File f = new File(Screenshot.getFilename());
-    	try {
-			ImageIO.write(croppedImage, "PNG", f);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+    	BufferedImage croppedImage = sSImage.getSubimage(region.x, region.y, region.w, region.h);
+    	return croppedImage;
     }
-	private static int NoOfMatches(Pattern searchImage, Pattern Screenshot)
+	private static int NoOfMatches(Pattern searchImage, BufferedImage sSImage)
     {
         int count = 0;
-    	try {
-				Finder f = new Finder(Screenshot.getBImage());
-				f.findAll(searchImage);
-				while(f.hasNext())
-				{
-					count++;
-					f.next();
-				}
-			} 
-    	catch (Exception e1) {
-			e1.printStackTrace();
+		Finder f = new Finder(sSImage);
+		f.findAll(searchImage);
+		while(f.hasNext())
+		{
+			count++;
+			f.next();
 		}
-    	if(count > 1)
-    		new File(searchImage.getFilename()).delete();
     	return count;
     }
 }
