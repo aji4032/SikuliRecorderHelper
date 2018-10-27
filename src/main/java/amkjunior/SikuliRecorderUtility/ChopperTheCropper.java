@@ -28,7 +28,10 @@ import org.sikuli.script.Region;
  * @param OutputFile Output file name post image crop.
  */
 public class ChopperTheCropper {
-    public static void main( String[] args ) 
+    private static Integer Incrementer;
+	private static int marginX;
+	private static int marginY;
+	public static void main( String[] args ) 
     {
     	//Check to see if all parameters are passed correctly and if config file is present
     	if((args.length != 4) || !(new File("config.properties").exists()))
@@ -49,6 +52,18 @@ public class ChopperTheCropper {
         		Integer.valueOf(PropertyFileHandler.getProperty("BoundH")));
         int MinWidth = Integer.valueOf(PropertyFileHandler.getProperty("MinWidth"));
         int MinHeight = Integer.valueOf(PropertyFileHandler.getProperty("MinHeight"));
+		
+        Incrementer = Integer.valueOf(PropertyFileHandler.getProperty("MaxAttempts"));
+        Incrementer = (int) Math.sqrt(Incrementer) / 2;
+        if (Incrementer <= 1) Incrementer = 2;
+        
+        marginX = (x - bounds.x) < (bounds.x + bounds.w - x)
+        		    ? (x - bounds.x)
+        		    : (bounds.x + bounds.w - x);
+        	        
+        marginY = (y - bounds.y) < (bounds.y + bounds.h - y)
+        		    ? (y - bounds.y)
+        		    : (bounds.y + bounds.h - y);
         
         //Checking if MinWidth & MinHeight even or not
         if(MinWidth%2 != 0)
@@ -100,16 +115,22 @@ public class ChopperTheCropper {
 
     private static Region DetermineCropRegion(int x, int y, int MinWidth, int MinHeight, Region bounds, Region oldCropRegion) {
 		Region newCropRegion = new Region(0, 0, 0, 0); 
-    	int incrementalX = (int) (0.1 * bounds.w) > 1 ? (int) (0.1 * bounds.w) : 1;
-    	int incrementalY = (int) (0.1 * bounds.h) > 1 ? (int) (0.1 * bounds.h) : 1;
-    	
     	if(oldCropRegion == null)
     	{
-    		oldCropRegion = new Region((x - MinWidth/2 + incrementalX), 
-    				(y - MinHeight/2 + incrementalY), 
-    				(MinWidth - incrementalX),
-    				(MinHeight - incrementalY));
-    	}
+    		oldCropRegion = new Region((x - MinWidth/2), 
+									   (y - MinHeight/2), 
+									   (MinWidth),
+									   (MinHeight));	
+    	}		
+		
+    	int incrementalX = (int) marginX / Incrementer;
+    	int incrementalY = (int) marginY / Incrementer;
+    	if(incrementalX < 1) incrementalX = 1;
+    	if(incrementalY < 1) incrementalY = 1;
+
+        System.out.println("Incrementer: " + Incrementer);
+        System.out.println("IncrementerX: " + incrementalX);
+        System.out.println("IncrementerY: " + incrementalY);
 		
     	if(((oldCropRegion.x - incrementalX) > bounds.x) && ((oldCropRegion.x + oldCropRegion.w + incrementalX) < (bounds.x + bounds.w)))
     	{
