@@ -15,7 +15,7 @@ import java.util.Properties;
  * @version 1.0
  */
 class PropertyFileHandler {
-	final private static String configFile = "config.properties";
+	final protected static String configFile = "config.txt";
 	/**
 	 * To reset a value in "config.properties" file
 	 * @param key The key whose value that needs to be reset.

@@ -30,7 +30,7 @@ public class ChopperTheCropper {
 	public static void main( String[] args ) 
     {
     	//Check to see if all parameters are passed correctly and if config file is present
-    	if((args.length != 4) || !(new File("config.properties").exists()))
+    	if((args.length != 4) || !(new File(PropertyFileHandler.configFile).exists()))
     		System.exit(1);
     	
     	//Assigning required parameters
