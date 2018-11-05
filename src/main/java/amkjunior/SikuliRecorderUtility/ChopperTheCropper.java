@@ -27,10 +27,11 @@ import org.sikuli.script.Region;
  * @param OutputFile Output file name post image crop.
  */
 public class ChopperTheCropper {
+	private static Integer MaxAttempts;
 	public static void main( String[] args ) 
     {
     	//Check to see if all parameters are passed correctly and if config file is present
-    	if((args.length != 4) || !(new File(PropertyFileHandler.configFile).exists()))
+    	if((args.length != 12))
     		System.exit(1);
     	
     	//Assigning required parameters
@@ -40,14 +41,25 @@ public class ChopperTheCropper {
     	String OutputFile = args[3];
     	
     	//Fetching all the required properties
-        float similarity = Float.valueOf(PropertyFileHandler.getProperty("similarity"));
+//        float similarity = Float.valueOf(PropertyFileHandler.getProperty("similarity"));
+//        Region bounds = new Region(
+//        		Integer.valueOf(PropertyFileHandler.getProperty("BoundX")),
+//        		Integer.valueOf(PropertyFileHandler.getProperty("BoundY")),
+//        		Integer.valueOf(PropertyFileHandler.getProperty("BoundW")),
+//        		Integer.valueOf(PropertyFileHandler.getProperty("BoundH")));
+//        int MinWidth = Integer.valueOf(PropertyFileHandler.getProperty("MinWidth"));
+//        int MinHeight = Integer.valueOf(PropertyFileHandler.getProperty("MinHeight"));
+//        MaxAttempts  = Integer.valueOf(PropertyFileHandler.getProperty("MaxAttempts"));
+        
+        float similarity = Float.parseFloat(args[4]);
         Region bounds = new Region(
-        		Integer.valueOf(PropertyFileHandler.getProperty("BoundX")),
-        		Integer.valueOf(PropertyFileHandler.getProperty("BoundY")),
-        		Integer.valueOf(PropertyFileHandler.getProperty("BoundW")),
-        		Integer.valueOf(PropertyFileHandler.getProperty("BoundH")));
-        int MinWidth = Integer.valueOf(PropertyFileHandler.getProperty("MinWidth"));
-        int MinHeight = Integer.valueOf(PropertyFileHandler.getProperty("MinHeight"));
+        		Integer.valueOf(args[5]),
+        		Integer.valueOf(args[6]),
+        		Integer.valueOf(args[7]),
+        		Integer.valueOf(args[8]));
+        int MinWidth  = Integer.valueOf(args[9]);
+        int MinHeight = Integer.valueOf(args[10]);
+        MaxAttempts   = Integer.valueOf(args[11]);
         
         //Checking if MinWidth & MinHeight even or not
         if(MinWidth%2 != 0)
@@ -98,7 +110,7 @@ public class ChopperTheCropper {
     }
 
     private static Region getCropRegion(int x, int y, int MinWidth, int MinHeight, Region bounds, Region oldCropRegion) {
-        Integer Incrementer = Integer.valueOf(PropertyFileHandler.getProperty("MaxAttempts"));
+        Integer Incrementer = MaxAttempts;
         Incrementer = (int) Math.sqrt(Incrementer);
         if (Incrementer <= 1) Incrementer = 2;
         
@@ -154,10 +166,7 @@ public class ChopperTheCropper {
     		}
     		else
     		{
-    			return new Region(Integer.valueOf(PropertyFileHandler.getProperty("BoundX")),
-    	        		Integer.valueOf(PropertyFileHandler.getProperty("BoundY")),
-    	        		Integer.valueOf(PropertyFileHandler.getProperty("BoundW")),
-    	        		Integer.valueOf(PropertyFileHandler.getProperty("BoundH")));
+    			return bounds;
     		}
     	}
 		return newCropRegion;
